@@ -4,6 +4,8 @@ import os
 from pathlib import Path
 import logging
 import sys
+import random
+from fastai.vision import open_image
 
 root = logging.getLogger()
 root.setLevel(logging.DEBUG)
@@ -62,3 +64,55 @@ def get_dataset(dataset = 1, dir_name = "data"):
     save_dir = unzip_data(dataset, dir_name)
     logging.info("Dataset can be found at {}".format(save_dir))
     return save_dir
+
+class KinNetDataset:
+    def __init__(self):
+        logging.info("Creating Dataset")
+        get_dataset()
+        self.data_dir = get_dataset() / "images"
+        self.parent_list = ["father", "mother"]
+        self.child_list = ["son", "dau"]
+        self.is_parent = lambda x: x.split(".")[0][-1] == "1"
+        
+    def get_pair(self, file_name):
+        file_name = file_name.split(".")
+        n = int(file_name[0][-1])
+        n = (n % 2) + 1
+        file_name[0] = file_name[0][:-1] + str(n)
+        return ".".join(file_name), True if n == 1 else False
+
+    def get_random_kinship_pair(self):
+        p = random.choice(self.parent_list)
+        c = random.choice(self.child_list)
+        return self.data_dir / (p+"-"+c)
+
+    def get_quadruple_filenames(self):
+        dir = self.get_random_kinship_pair()
+        xp = random.choice(os.listdir(dir))
+        xc, is_parent = self.get_pair(xp)
+        if is_parent:
+            xp, xc = xc, xp
+        xp = dir / xp
+        xc = dir / xc
+        dir = self.get_random_kinship_pair()
+        x_p_cap = random.choice(os.listdir(dir))
+        if not self.is_parent(x_p_cap):
+            x_p_cap, _ = self.get_pair(x_p_cap)
+        x_p_cap = dir / x_p_cap
+        dir = self.get_random_kinship_pair()
+        x_c_cap = random.choice(os.listdir(dir))
+        if self.is_parent(x_c_cap):
+            x_c_cap, _ = self.get_pair(x_c_cap)
+        x_c_cap = dir / x_c_cap
+        return xp, xc, x_p_cap, x_c_cap
+
+    def get_quadruple(self):
+        files = self.get_quadruple_filenames()
+        return [open_image(i) for i in files]
+
+    def get_batch(self, size=10):
+        return [self.get_quadruple() for _ in range(size)]
+        
+    
+
+
