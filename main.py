@@ -1,4 +1,4 @@
-from kinnet import get_dataset, check_downloads_directory
+from kinnet import get_dataset, check_downloads_directory, KinNetDataset
 import argparse
 
 
@@ -8,5 +8,8 @@ if __name__== "__main__":
                         help='dataset Number')
     parser.add_argument("-d", metavar = "--downloadDir", type=str,
                             help="Directory to save downloaded files")
+    parser.add_argument("-bs", metavar = "--batchSize", type=int,
+                            help="Batch Size for training")
     args = parser.parse_args()
-    get_dataset(args.n, args.d)
+    dataset = KinNetDataset(args.n, args.d, args.bs)
+    dataset.show_batch()

@@ -1,1 +1,1 @@
-from .data_utils import get_dataset, check_downloads_directory
+from .data_utils import get_dataset, check_downloads_directory, KinNetDataset

@@ -6,15 +6,18 @@ import logging
 import sys
 import random
 from fastai.vision import open_image
+import matplotlib.pyplot as plt
+import math
 
 root = logging.getLogger()
-root.setLevel(logging.DEBUG)
+root.setLevel(logging.INFO)
 
-handler = logging.StreamHandler(sys.stdout)
-handler.setLevel(logging.DEBUG)
-formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
-handler.setFormatter(formatter)
-root.addHandler(handler)
+def get_title(filename):
+    title_dict = {'m':'Mother', 'f':'Father', 's':'Son', 'd':'Daughter'}
+    filename = str(filename).split('/')[-1]
+    n = filename.split('_')[1]
+    pc = filename.split('_')[-1][0]
+    return "{}: {}".format(title_dict[filename[0]] if pc == '1' else title_dict[filename[1]], n)
 
 def check_downloads_directory(dir_name = "downloads", dataset = 1):
     dir_name = Path(dir_name)
@@ -62,17 +65,24 @@ def unzip_data(dataset = 1, data_dir = "data"):
 def get_dataset(dataset = 1, dir_name = "data"):
     download_dataset(dir_name, dataset)
     save_dir = unzip_data(dataset, dir_name)
+    dirs = os.listdir(save_dir/'images')
+    for i in dirs:
+        try:
+            (save_dir/'images'/i/'Thumbs.db').unlink()
+        except:
+            pass
     logging.info("Dataset can be found at {}".format(save_dir))
     return save_dir
 
 class KinNetDataset:
-    def __init__(self):
+    def __init__(self, n, d, bs):
         logging.info("Creating Dataset")
-        get_dataset()
-        self.data_dir = get_dataset() / "images"
+        self.data_dir = get_dataset(n, d)
+        self.data_dir = self.data_dir / "images"
         self.parent_list = ["father", "mother"]
         self.child_list = ["son", "dau"]
         self.is_parent = lambda x: x.split(".")[0][-1] == "1"
+        self.bs = bs
         
     def get_pair(self, file_name):
         file_name = file_name.split(".")
@@ -112,7 +122,32 @@ class KinNetDataset:
 
     def get_batch(self, size=10):
         return [self.get_quadruple() for _ in range(size)]
+
+    def show_batch(self):
+        n_images = self.bs*2
+        plot_size = 4, math.ceil(n_images/4)
+        self.fig, ax = plt.subplots(plot_size[1], plot_size[0])
+        cur_row = 0
+        cur_col = 0
+        for i in range(self.bs):
+            quad = self.get_quadruple_filenames()
+            img1 = plt.imread(quad[0])
+            img2 = plt.imread(quad[1])
+            ax[cur_row, cur_col].axis('off')
+            ax[cur_row, cur_col].imshow(img1)
+            ax[cur_row, cur_col].set_title(get_title(quad[0]))
+            cur_col += 1
+            ax[cur_row, cur_col].axis('off')
+            ax[cur_row, cur_col].imshow(img2)
+            ax[cur_row, cur_col].set_title(get_title(quad[1]))
+            cur_col += 1
+            
+            if cur_col >= plot_size[0]:
+                cur_row += 1
+                cur_col = 0
+        for i in range(cur_col, 4):
+            ax[cur_row, i].axis('off')
+        plt.show()
         
     
-
 
