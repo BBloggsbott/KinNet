@@ -8,6 +8,7 @@ import random
 from fastai.vision import open_image
 import matplotlib.pyplot as plt
 import math
+import matplotlib
 
 root = logging.getLogger()
 root.setLevel(logging.INFO)
@@ -83,6 +84,7 @@ class KinNetDataset:
         self.child_list = ["son", "dau"]
         self.is_parent = lambda x: x.split(".")[0][-1] == "1"
         self.bs = bs
+        self.n = n
         
     def get_pair(self, file_name):
         file_name = file_name.split(".")
@@ -124,9 +126,12 @@ class KinNetDataset:
         return [self.get_quadruple() for _ in range(size)]
 
     def show_batch(self):
+        matplotlib.rc('font', size=6)
         n_images = self.bs*2
         plot_size = 4, math.ceil(n_images/4)
         self.fig, ax = plt.subplots(plot_size[1], plot_size[0])
+        self.fig.suptitle("A single batch of KinFaceW - {}".format("I" if self.n == 1 else "II"))
+        #plt.subplots_adjust(bottom=0.15, right=0.8, top = 0.99)
         cur_row = 0
         cur_col = 0
         for i in range(self.bs):
@@ -145,8 +150,9 @@ class KinNetDataset:
             if cur_col >= plot_size[0]:
                 cur_row += 1
                 cur_col = 0
-        for i in range(cur_col, 4):
-            ax[cur_row, i].axis('off')
+        if cur_col != 0:
+            for i in range(cur_col, 4):
+                ax[cur_row, i].axis('off')
         plt.show()
         
     
