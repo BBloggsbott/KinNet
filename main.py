@@ -1,4 +1,4 @@
-from kinnet import get_dataset, check_downloads_directory, KinNetDataset
+from kinnet import get_dataset, check_downloads_directory, KinNetDataset, KinNetTrainer
 import argparse
 
 
@@ -11,5 +11,6 @@ if __name__== "__main__":
     parser.add_argument("-bs", metavar = "--batchSize", type=int,
                             help="Batch Size for training")
     args = parser.parse_args()
-    dataset = KinNetDataset(args.n, args.d, args.bs)
-    dataset.show_batch()
+    trainer = KinNetTrainer(args.n, args.d, args.bs)
+    trainer.data.show_batch()
+    trainer.train_model(2)

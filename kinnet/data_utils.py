@@ -75,6 +75,7 @@ def get_dataset(dataset = 1, dir_name = "data"):
     logging.info("Dataset can be found at {}".format(save_dir))
     return save_dir
 
+
 class KinNetDataset:
     def __init__(self, n, d, bs):
         logging.info("Creating Dataset")
@@ -82,7 +83,7 @@ class KinNetDataset:
         self.data_dir = self.data_dir / "images"
         self.parent_list = ["father", "mother"]
         self.child_list = ["son", "dau"]
-        self.is_parent = lambda x: x.split(".")[0][-1] == "1"
+        self.is_parent = lambda x: x.split(".")[0][-1] =="1"
         self.bs = bs
         self.n = n
         
@@ -92,19 +93,19 @@ class KinNetDataset:
         n = (n % 2) + 1
         file_name[0] = file_name[0][:-1] + str(n)
         return ".".join(file_name), True if n == 1 else False
-
+    
     def get_random_kinship_pair(self):
         p = random.choice(self.parent_list)
         c = random.choice(self.child_list)
         return self.data_dir / (p+"-"+c)
-
+    
     def get_quadruple_filenames(self):
         dir = self.get_random_kinship_pair()
         xp = random.choice(os.listdir(dir))
         xc, is_parent = self.get_pair(xp)
         if is_parent:
             xp, xc = xc, xp
-        xp = dir / xp
+            xp = dir / xp
         xc = dir / xc
         dir = self.get_random_kinship_pair()
         x_p_cap = random.choice(os.listdir(dir))
@@ -117,11 +118,32 @@ class KinNetDataset:
             x_c_cap, _ = self.get_pair(x_c_cap)
         x_c_cap = dir / x_c_cap
         return xp, xc, x_p_cap, x_c_cap
-
+    
     def get_quadruple(self):
         files = self.get_quadruple_filenames()
         return [open_image(i) for i in files]
 
+    def get_random_pair(self, kin=False):
+        dir = self.get_random_kinship_pair()
+        if kin:
+            xp = random.choice(os.listdir(dir))
+            xc, is_parent = self.get_pair(xp)
+            if is_parent:
+                xp, xc = xc, xp
+            xp = dir / xp
+            xc = dir / xc
+            return xp, xc
+        xp = random.choice(os.listdir(dir))
+        dir = self.get_random_kinship_pair()
+        xc = random.choice(os.listdir(dir))
+        xp_temp, isparent = self.get_pair(xp)
+        if isparent:
+            xp = xp_temp
+        xc_temp, isparent = self.get_pair(xc)
+        if not isparent:
+            xc = xc_temp
+        return open_image(xp), open_image(xc)
+    
     def get_batch(self, size=10):
         return [self.get_quadruple() for _ in range(size)]
 
@@ -129,9 +151,8 @@ class KinNetDataset:
         matplotlib.rc('font', size=6)
         n_images = self.bs*2
         plot_size = 4, math.ceil(n_images/4)
-        self.fig, ax = plt.subplots(plot_size[1], plot_size[0])
-        self.fig.suptitle("A single batch of KinFaceW - {}".format("I" if self.n == 1 else "II"))
-        #plt.subplots_adjust(bottom=0.15, right=0.8, top = 0.99)
+        self.fig, ax = plt.subplots(plot_size[1],
+        plot_size[0])
         cur_row = 0
         cur_col = 0
         for i in range(self.bs):
@@ -146,7 +167,6 @@ class KinNetDataset:
             ax[cur_row, cur_col].imshow(img2)
             ax[cur_row, cur_col].set_title(get_title(quad[1]))
             cur_col += 1
-            
             if cur_col >= plot_size[0]:
                 cur_row += 1
                 cur_col = 0
@@ -154,6 +174,4 @@ class KinNetDataset:
             for i in range(cur_col, 4):
                 ax[cur_row, i].axis('off')
         plt.show()
-        
     
-
