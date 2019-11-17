@@ -28,10 +28,10 @@ class KinNetLoss(nn.Module):
 
 class KinNetTrainer:
     def __init__(self, dataset = 1, data_dir="data", batch_size = 8):
+        self.data = KinNetDataset(dataset, data_dir, batch_size)
         self.model = KinNet()
         self.criterion = KinNetLoss()
         self. optimizer = optim.Adam(self.model.parameters())
-        self.data = KinNetDataset(dataset, data_dir, batch_size)
 
     def train_model(self, epochs):
         logging.info("Starting training")
