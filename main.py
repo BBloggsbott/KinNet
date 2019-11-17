@@ -1,6 +1,7 @@
 from kinnet import get_dataset, check_downloads_directory, KinNetDataset, KinNetTrainer
 import argparse
-
+import torch
+import logging
 
 if __name__== "__main__":
     parser = argparse.ArgumentParser(description='Download Datasets')
@@ -16,3 +17,5 @@ if __name__== "__main__":
     trainer = KinNetTrainer(args.n, args.d, args.bs)
     trainer.data.show_batch()
     trainer.train_model(args.e)
+    torch.save(trainer.model, "kinnet.pth")
+    logging.info("Model saved.")
