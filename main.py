@@ -10,7 +10,9 @@ if __name__== "__main__":
                             help="Directory to save downloaded files")
     parser.add_argument("-bs", metavar = "--batchSize", type=int,
                             help="Batch Size for training")
+    parser.add_argument("-e", metavar = "--epochs", type=int,
+                            help="Number of epochs for training")
     args = parser.parse_args()
     trainer = KinNetTrainer(args.n, args.d, args.bs)
     trainer.data.show_batch()
-    trainer.train_model(2)
+    trainer.train_model(args.e)
